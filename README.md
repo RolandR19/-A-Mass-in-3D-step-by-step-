@@ -1,0 +1,136 @@
+# -A-Mass-in-3D-step-by-step-
+I asked the artificial intelligence Claude to design an interactive, visual tool to introduce or explain the flow of a Mass to children (and anyone else). What was generated is not just a static image, but an interactive 3D infographic built directly into a web page. https://sites.google.com/view/a-mass-in-3d-step-by-step/home
+
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Mass in 3D, step by step</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1b1612;font-family:Georgia,serif}
+canvas{display:block;touch-action:none}
+#ui{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(20,14,10,.82);color:#f6ecd9;backdrop-filter:blur(6px)}
+#ui .in{max-width:760px;margin:0 auto}
+#part{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#e0b45a}
+h2{margin:4px 0;font-size:20px}
+#d{margin:0 0 10px;font-size:15px;line-height:1.45}
+.row{display:flex;gap:8px;align-items:center}
+button{font:inherit;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;background:#e0b45a;color:#2a1c0c;font-weight:bold}
+button.g{background:#4a3d30;color:#f6ecd9}
+#bar{flex:1;height:4px;background:#4a3d30;border-radius:2px;overflow:hidden}
+#bar i{display:block;height:100%;background:#e0b45a;width:0}
+#hint{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;color:#fff;font-size:12px;text-shadow:0 1px 3px #000}
+</style></head><body>
+<div id="hint">Drag to look around</div>
+<div id="ui"><div class="in">
+<div id="part"></div><h2 id="t"></h2><p id="d"></p>
+<div class="row"><button class="g" id="pv">◀ Back</button><button class="g" id="hv">⬆ High view</button><div id="bar"><i></i></div><button id="nx">Suivant ▶</button></div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T=THREE,sc=new T.Scene();sc.background=new T.Color(0x9ec9ee);sc.fog=new T.Fog(0x9ec9ee,40,120);
+const cam=new T.PerspectiveCamera(60,innerWidth/innerHeight,.1,200);
+const ren=new T.WebGLRenderer({antialias:true});ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(ren.domElement);
+sc.add(new T.HemisphereLight(0xffffff,0x887766,.85));
+const sun=new T.DirectionalLight(0xfff2d0,.6);sun.position.set(20,30,20);sc.add(sun);
+const warm=new T.PointLight(0xffc477,.9,18);warm.position.set(0,3,-9);sc.add(warm);
+const M=(c,e)=>new T.MeshLambertMaterial({color:c,emissive:e||0,side:T.DoubleSide});
+const box=(w,h,d,x,y,z,c,mat)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat||M(c));m.position.set(x,y,z);sc.add(m);return m};
+const cyl=(r1,r2,h,x,y,z,c,p)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r2,h,14),M(c));m.position.set(x,y,z);(p||sc).add(m);return m};
+// sol, chemin, parvis
+box(200,.2,200,0,-.1,0,0x5d8f4a);box(3,.05,40,0,.03,32,0xcdbf9f);box(4,.2,2,0,.1,13,0xaaaaaa);box(8,.2,26,0,0,-1,0xb8a58a);
+// murs
+const W=0xe8dfcf;box(.4,7,26,-4,3.5,-1,W);box(.4,7,26,4,3.5,-1,W);box(8.4,7,.4,0,3.5,-14,W);
+box(3,7,.4,-2.5,3.5,12,W);box(3,7,.4,2.5,3.5,12,W);box(2,3.5,.4,0,5.25,12,W);
+const tri=new T.Shape([new T.Vector2(-4.2,7),new T.Vector2(4.2,7),new T.Vector2(0,10)]);
+[12,-14].forEach(z=>{const m=new T.Mesh(new T.ShapeGeometry(tri),M(W));m.position.z=z;sc.add(m)});
+[[-2.1,.62],[2.1,-.62]].forEach(([x,a])=>{const r=box(5.3,.3,27.5,x,8.5,-1,0x8a3b2a);r.rotation.z=a});
+for(let z=-12;z<=10;z+=4)box(8,.2,.3,0,7.1,z,0x5a3a20);
+box(.2,1.4,.2,0,10.7,12,0xd9b04a);box(.8,.2,.2,0,10.9,12,0xd9b04a);
+// clocher
+box(3,12,3,-6,6,10,0xd9cdb6);box(1,1.6,3.1,-6,10.5,10,0x222222);
+const cone=new T.Mesh(new T.ConeGeometry(2.4,4,4),M(0x5a3a30));cone.position.set(-6,14,10);cone.rotation.y=Math.PI/4;sc.add(cone);
+cyl(.08,.08,1.2,-6,16.6,10,0xd9b04a);box(.6,.1,.1,-6,16.8,10,0xd9b04a);
+// arbres
+for(let i=0;i<14;i++){const x=(i%2?1:-1)*(10+Math.random()*25),z=-10+Math.random()*50;cyl(.3,.4,2,x,1,z,0x6b4a2a);const c=new T.Mesh(new T.ConeGeometry(1.8,5,8),M(0x2f6a35));c.position.set(x,4.5,z);sc.add(c)}
+// vitraux
+const vc=[0xd33,0x39d,0xeb3,0x3a6];
+for(let i=0;i<4;i++)[-4,4].forEach((x,j)=>box(.6,3,1.2,x,4.2,-9+i*5,0,new T.MeshBasicMaterial({color:vc[(i+j)%4]})));
+// bancs et fidèles
+const wood=0x7a4b25;
+for(let z=6;z>=-6;z-=2)[-2.4,2.4].forEach(x=>{box(2.6,.15,.7,x,.55,z,wood);box(2.6,.9,.12,x,1,z+.4,wood);box(.15,.55,.7,x-1.2,.3,z,wood);box(.15,.55,.7,x+1.2,.3,z,wood)});
+const cols=[0x445577,0x884433,0x336655,0x775588,0x555555];
+[[2.4,4],[2.8,0],[1.9,-2],[2.4,-4],[-2.8,-2],[-1.8,-4],[-2.6,-6],[2.2,-6],[-2.0,4],[-3,0],[1.8,2]].forEach(([x,z],i)=>{cyl(.22,.25,.7,x,.95,z,cols[i%5]);const h=new T.Mesh(new T.SphereGeometry(.14,10,10),M(0xd9ae88));h.position.set(x,1.5,z);sc.add(h)});
+// sanctuaire
+box(8,.4,5,0,.2,-11.5,0xcfc6b6);
+box(2.4,1,1,0,.9,-11.2,0xf3f0ea);box(2.4,.05,.5,0,1.42,-11.2,0xa02030);
+box(.3,3,.2,0,4.5,-13.7,0x6b4423);box(1.6,.3,.2,0,5.2,-13.7,0x6b4423);
+[-.8,.8].forEach(x=>{cyl(.07,.07,.5,x,1.7,-11.2,0xf5efe0);const f=new T.Mesh(new T.SphereGeometry(.06,8,8),new T.MeshBasicMaterial({color:0xffb040}));f.position.set(x,2,-11.2);sc.add(f)});
+cyl(.1,.06,.3,.4,1.6,-11.2,0xd9b04a);
+box(.8,1.2,.6,-3,1,-10,0xa87a4a);box(.7,.5,.7,3,.65,-12.2,wood);box(.7,1,.1,3,1.2,-12.6,wood);
+cyl(.15,.2,1,1.4,.55,11.2,0xaaa49a);const bw=new T.Mesh(new T.SphereGeometry(.3,12,8,0,6.3,0,1.6),M(0x999088));bw.position.set(1.4,1.1,11.2);sc.add(bw);
+const host=new T.Mesh(new T.SphereGeometry(.09,12,12),new T.MeshBasicMaterial({color:0xfffbe8}));host.position.set(0,1.95,-11.7);sc.add(host);
+const hl=new T.PointLight(0xfff3c0,1,6);host.add(hl);
+// prêtre
+const P=new T.Group();sc.add(P);
+cyl(.25,.45,1.5,0,.75,0,0xffffff,P);cyl(.28,.47,1.25,0,.85,0,0x2f7d4f,P);
+const hd=new T.Mesh(new T.SphereGeometry(.16,12,12),M(0xe0b48a));hd.position.y=1.68;P.add(hd);
+const arms=[1,-1].map(s=>{const g=new T.Group();g.position.set(s*.3,1.4,0);cyl(.06,.06,.6,0,-.3,0,0xffffff,g);P.add(g);return[g,s]});
+// étapes
+const SEAT=[-2.4,1.25,2],ALT=[0,1.6,-11],PI=Math.PI;
+const S=[
+["Before Mass","The church from outside","The bells ring. You arrive a few minutes before Mass, in front of the big doors.",[8,3,28],[0,4.5,10],{}],
+["Before Mass","You walk in","Near the door is the holy water font: you dip your fingers and make the sign of the cross. Then you lower your voice.",[.2,1.6,10.2],[1.4,1,11.2],{f:55}],
+["Before Mass","You take a seat","You choose a pew and sit down. A moment of silence and prayer before everything begins.",SEAT,ALT,{}],
+["Introductory Rites","Entrance procession","Everyone stands. During the entrance hymn, the priest walks to the altar, kisses it, and goes to his chair.",SEAT,[0,1.4,-8],{p:[0,0,-5.5],r:PI}],
+["Introductory Rites","Sign of the cross and greeting","\"In the name of the Father, and of the Son, and of the Holy Spirit.\" The priest greets the people: \"The Lord be with you.\"",SEAT,[2.2,1.5,-11],{p:[2.2,.4,-11.6],r:0,a:1,f:45}],
+["Introductory Rites","Penitential Act: \"Lord, have mercy\"","We admit our faults and ask God for forgiveness, with the sung Kyrie.",SEAT,[2.2,1.5,-11],{p:[2.2,.4,-11.6],a:0,f:45}],
+["Introductory Rites","Gloria","A hymn of praise, except in Advent and Lent: \"Glory to God in the highest\".",SEAT,ALT,{p:[2.2,.4,-11.6],a:1}],
+["Introductory Rites","Opening Prayer (Collect)","\"Let us pray.\" The priest opens his arms and gathers the prayers of the assembly. All answer \"Amen.\"",SEAT,[2.2,1.5,-11],{p:[2.2,.4,-11.6],a:1,f:45}],
+["Liturgy of the Word","Readings and Psalm","Everyone sits. A reader proclaims the first reading, we sing the Psalm, then the second reading (on Sundays).",SEAT,[-3,1.6,-10],{p:[-3,.4,-10.8],a:0,f:42}],
+["Liturgy of the Word","Gospel","Standing, we sing the Alleluia. The priest reads the Gospel. We trace a small cross on forehead, lips and heart.",SEAT,[-3,1.6,-10],{p:[-3,.4,-10.8],a:0,f:42}],
+["Liturgy of the Word","Homily","Seated, you listen as the priest explains the readings and connects them to everyday life.",SEAT,[1.2,1.6,-9],{p:[1.2,.4,-9.2],r:0,a:1,f:42}],
+["Liturgy of the Word","Creed","Standing, we profess our faith: \"I believe in one God, the Father almighty...\"",SEAT,ALT,{p:[0,.4,-9.8],a:0}],
+["Liturgy of the Word","Prayer of the Faithful","We pray for the Church, the world, the sick and the parish. Response: \"Lord, hear our prayer.\"",SEAT,ALT,{p:[2.2,.4,-11.6],a:1}],
+["Liturgy of the Eucharist","Offertory","Bread and wine are brought up, and the collection is taken. The priest prepares the altar and washes his hands.",SEAT,ALT,{p:[0,.4,-12.3],a:0,f:48}],
+["Liturgy of the Eucharist","Preface and Sanctus","\"Lift up your hearts.\" The priest begins the great prayer. The people sing: \"Holy, Holy, Holy Lord\".",SEAT,ALT,{p:[0,.4,-12.3],a:1,f:42}],
+["Liturgy of the Eucharist","Consecration","We kneel. The priest repeats the words and actions of Jesus at the Last Supper over the bread and wine. A bell rings.",SEAT,[0,1.9,-11.4],{p:[0,.4,-12.3],a:2,h:1,f:32}],
+["Liturgy of the Eucharist","Memorial Acclamation and Great Amen","\"The mystery of faith.\" The priest lifts the host and chalice: \"Through him, with him, in him...\" — \"Amen!\"",SEAT,[0,1.9,-11.4],{p:[0,.4,-12.3],a:2,h:1,f:32}],
+["Communion Rite","Our Father and Sign of Peace","Standing, we pray the Our Father. Then \"Let us offer each other the sign of peace\": we shake hands.",SEAT,ALT,{p:[0,.4,-12.3],a:1,f:45}],
+["Communion Rite","Lamb of God and Communion","We sing \"Lamb of God\". The faithful walk up the aisle, receive the host, and return to pray in silence.",[-.4,1.6,-3],[0,1.5,-9.4],{p:[0,.4,-9.8],a:0,h:1,f:55}],
+["Concluding Rites","Prayer after Communion","A moment of silence, then the priest says the final prayer. Announcements for the week follow.",SEAT,[2.2,1.5,-11],{p:[2.2,.4,-11.6],a:1,f:45}],
+["Concluding Rites","Blessing","Standing: \"May almighty God bless you, the Father, and the Son, and the Holy Spirit.\" We make the sign of the cross.",SEAT,[0,1.7,-11],{p:[0,.4,-11.6],a:2,f:40}],
+["Concluding Rites","Dismissal","\"Go in peace.\" — \"Thanks be to God.\" Closing hymn, and the priest processes out.",SEAT,[0,1.8,12],{p:[0,0,6],r:0,a:0}],
+["After Mass","You step outside","You leave the church into the daylight. Mass has ended. Press \"Restart\" to go through it again.",[0,1.6,13],[0,1.5,40],{f:65}]
+];
+// état
+let i=0,yaw=0,pit=0,high=false;
+const cur={c:new T.Vector3(8,3,28),l:new T.Vector3(0,4.5,10),f:60,a:.15,r:0};
+const tg={c:new T.Vector3(),l:new T.Vector3(),f:60,a:.15,r:0,p:null,h:0};
+const ANG=[.15,1.8,2.6];
+function go(n){i=Math.max(0,Math.min(S.length-1,n));const[pt,t,d,c,l,o]=S[i];
+ let cc=c,ll=l;if(high&&i>=2&&i<=20){cc=[0,6.3,i==18?-1.5:8];ll=[l[0],Math.max(l[1]-.6,.8),l[2]]}
+ tg.c.set(...cc);tg.l.set(...ll);tg.f=o.f||60;tg.a=ANG[o.a||0];tg.h=o.h||0;
+ if(o.p){tg.p=o.p;if(!P.visible){P.position.set(...o.p)}P.visible=true;if(o.r!==undefined)tg.r=o.r}else{P.visible=false;tg.p=null}
+ yaw=pit=0;
+ part.textContent=pt+" · "+(i+1)+"/"+S.length;tt.textContent=t;dd.textContent=d;
+ document.querySelector('#bar i').style.width=((i+1)/S.length*100)+"%";
+ nx.textContent=i==S.length-1?"Restart ↺":"Next ▶";pv.style.visibility=i?"visible":"hidden"}
+const part=document.getElementById('part'),tt=document.getElementById('t'),dd=document.getElementById('d'),nx=document.getElementById('nx'),pv=document.getElementById('pv'),hv=document.getElementById('hv');
+hv.onclick=()=>{high=!high;hv.textContent=high?'⬇ Pew view':'⬆ High view';go(i)};
+nx.onclick=()=>go(i==S.length-1?0:i+1);pv.onclick=()=>go(i-1);
+addEventListener('keydown',e=>{if(e.key=='ArrowRight')nx.click();if(e.key=='ArrowLeft')pv.click()});
+// glisser pour regarder
+let dr=null;const cv=ren.domElement;
+cv.onpointerdown=e=>{dr=[e.clientX,e.clientY]};addEventListener('pointerup',()=>dr=null);
+addEventListener('pointermove',e=>{if(!dr)return;yaw+=(e.clientX-dr[0])*.004;pit+=(e.clientY-dr[1])*.003;pit=Math.max(-.7,Math.min(.7,pit));dr=[e.clientX,e.clientY]});
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+const lerp=(a,b,k)=>a+(b-a)*k;
+function loop(){requestAnimationFrame(loop);const k=.045;
+ cur.c.lerp(tg.c,k);cur.l.lerp(tg.l,k);cur.f=lerp(cur.f,tg.f,k);
+ cam.fov=cur.f;cam.updateProjectionMatrix();cam.position.copy(cur.c);cam.lookAt(cur.l);cam.rotateY(yaw);cam.rotateX(pit);
+ if(tg.p){P.position.x=lerp(P.position.x,tg.p[0],.03);P.position.y=lerp(P.position.y,tg.p[1],.03);P.position.z=lerp(P.position.z,tg.p[2],.03);P.rotation.y=lerp(P.rotation.y,tg.r,.06)}
+ cur.a=lerp(cur.a,tg.a,.07);arms.forEach(([g,s])=>g.rotation.z=s*cur.a);
+ host.visible=tg.h==1;warm.intensity=i>2&&i<22?.9:.2;
+ ren.render(sc,cam)}
+go(0);loop();
+</script></body></html>
